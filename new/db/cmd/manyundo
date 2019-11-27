@@ -1,8 +1,6 @@
 NAME=t/manyundo
 FILE=malloc://1024
-BROKEN=1
 EXPECT=<<EOF
--no seeks done-
 f undo_62 @ 0x25
 f undo_61 @ 0x26
 f undo_60 @ 0x27
@@ -279,6 +277,7 @@ f undo_2 @ 0x30
 f undo_1 @ 0x31
 f undo_0 @ 0x32
 0x100
+
 EOF
 CMDS=<<EOF
 s*
