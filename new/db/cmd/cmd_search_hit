@@ -157,6 +157,16 @@ CMDS=<<EOF
 EOF
 RUN
 
+NAME=cmd.hit for /cd
+FILE=../bins/other/certificate.ber
+EXPECT=<<EOF
+0x0000002f hit0_0 308203493082
+EOF
+CMDS=<<EOF
+/cd
+EOF
+RUN
+
 NAME=cmd.hit for /a
 FILE=malloc://1024
 EXPECT=<<EOF
