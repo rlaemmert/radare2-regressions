@@ -41,12 +41,28 @@ mut:
 	fixed bool
 }
 
+fn (test R2RTest) parse_slurp(v string) (string, string) {
+	mut res := ''
+	mut slurp_token := ''
+	if v.starts_with("'") || v.starts_with("'") {
+		eprintln('Warning: Deprecated syntax, use <<EOF in ${test.source} @ ${test.name}')
+	} else if v.starts_with('<<') {
+		slurp_token = v[2 .. v.len]
+		if slurp_token == 'RUN' {
+			eprintln('Warning: Deprecated <<RUN, use <<EOF in ${test.source} @ ${test.name}')
+		}
+	} else {
+		res = v[0 .. v.len]
+	}
+	return res, slurp_token
+}
+
 fn (r2r mut R2R) load_cmd_test(testfile string) {
 	mut test := R2RTest{}
 	lines := os.read_lines(testfile) or { panic(err) }
+	mut slurp_target := &test.cmds
 	mut slurp_token := '' 
 	mut slurp_data := ''
-	mut slurp_target := &test.cmds
 	test.source = testfile
 	for line in lines {
 		if line.len == 0 {
@@ -62,28 +78,30 @@ fn (r2r mut R2R) load_cmd_test(testfile string) {
 			}
 			continue
 		}
-		kv := line.split('=')
+		kv := line.split_nth('=', 2)
 		if kv.len == 0 {
 			continue
 		}
 		match kv[0] {
 			'CMDS' {
 				if kv.len > 1 {
-					token := kv[1]
-					if token.starts_with("'") {
-						println('Warning: Deprecated syntax, use <<EOF in ${test.source} @ ${test.name}')
-					} else if token.starts_with('"') {
-						println('Warning: Deprecated syntax, use <<EOF in ${test.source} @ ${test.name}')
-					} else if token.starts_with('"') {
-						println('Warning: Deprecated syntax, use <<EOF in ${test.source} @ ${test.name}')
-					} else if token.starts_with('<<') {
+					a, b := test.parse_slurp(kv[1])
+					test.cmds = a
+					slurp_token = b
+					if slurp_token.len > 0 {
 						slurp_target = &test.cmds
-						slurp_token = token.substr(2, token.len)
-						if slurp_token == 'RUN' {
-							eprintln('Warning: Deprecated <<RUN, use <<EOF in ${test.source} @ ${test.name}')
-						}
-					} else {
-						test.expect = line.substr(7, line.len)
+					}
+				} else {
+				 	panic('Missing arg to cmds')
+				}
+			}
+			'EXPECT' {
+				if kv.len > 1 {
+					a, b := test.parse_slurp(kv[1])
+					test.expect = a
+					slurp_token = b
+					if slurp_token.len > 0 {
+						slurp_target = &test.expect
 					}
 				} else {
 				 	panic('Missing arg to cmds')
@@ -96,37 +114,18 @@ fn (r2r mut R2R) load_cmd_test(testfile string) {
 					println('Warning: Missing value for BROKEN in ${test.source}')
 				}
 			}
-			'EXPECT' {
-				if kv.len < 2 {
-					panic('<2')
-				}
-				token := kv[1]
-				if token.starts_with("'") {
-					println('Warning: Deprecated syntax, use <<EOF in ${test.source} @ ${test.name}')
-				} else if token.starts_with('"') {
-					println('Warning: Deprecated syntax, use <<EOF in ${test.source} @ ${test.name}')
-				} else if token.starts_with('<<') {
-					slurp_target = &test.expect
-					slurp_token = token.substr(2, token.len)
-					if slurp_token == 'RUN' {
-						eprintln('Warning: Deprecated <<RUN, use <<EOF in ${test.source} @ ${test.name}')
-					}
-				} else {
-					test.expect = line.substr(7, line.len)
-				}
-			}
 			'ARGS' {
 				if kv.len > 0 {
-					test.args = line.substr(5, line.len)
+					test.args = line[5 .. line.len]
 				} else {
 					println('Warning: Missing value for ARGS in ${test.source}')
 				}
 			}
 			'FILE' {
-				test.file = line.substr(5, line.len)
+				test.file = line[5 .. line.len]
 			}
 			'NAME' {
-				test.name = line.substr(5, line.len)
+				test.name = line[5 .. line.len]
 			}
 			'RUN' {
 				if test.name.len == 0 {
@@ -164,6 +163,7 @@ fn (r2r R2R)run_commands(test R2RTest) string {
 
 fn (r2r mut R2R)run_test(test R2RTest) {
 	time_start := time.ticks()
+	// eprintln(test)
 	tmp_dir := os.tmpdir()
 	tmp_script := filepath.join(tmp_dir, 'script.r2')
 	tmp_stderr := filepath.join(tmp_dir, 'stderr.txt')
