@@ -66,6 +66,8 @@ f undo_1 @ 0x62
 f undo_0 @ 0x63
 0x64
 
+{"offset":99}
+{"offset":100,"current":true}
 f redo_0 @ 0x26
 f redo_1 @ 0x27
 f redo_2 @ 0x28
@@ -262,6 +264,9 @@ f redo_48 @ 0x63
 f redo_49 @ 0x64
 0x32
 
+{"offset":49}
+{"offset":50,"current":true}
+{"offset":51}
 f undo_13 @ 0x25
 f undo_12 @ 0x26
 f undo_11 @ 0x27
@@ -284,6 +289,8 @@ s*
 # Force a wraparound in the undo/redo buffer.
 100s+ 1
 s* ; ?v $$ ; ?e
+sj~{62}
+sj~{63}
 
 # Make sure get back to the last available undo.
 100s-
@@ -296,6 +303,9 @@ s* ; ?v $$ ; ?e
 # Seeking inside the undo list must destroy the redo list.
 50s-
 s* ; ?v $$ ; ?e
+sj~{12}
+sj~{13}
+sj~{14}
 s 0x100
 s* ; ?v $$ ; ?e
 EOF
