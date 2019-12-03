@@ -22,7 +22,7 @@ struct Node {
 	RBNode rb; // intrusive red-black tree node
 };
 
-static void freefn(RBNode *a) {
+static void freefn(RBNode *a, void *user) {
 	free (container_of (a, struct Node, rb));
 }
 
@@ -124,7 +124,7 @@ bool test_r_rbtree_bound(void) {
 		i--;
 	}
 
-	r_rbtree_free (tree, freefn);
+	r_rbtree_free (tree, freefn, NULL);
 	mu_end;
 }
 
@@ -145,9 +145,9 @@ static bool insert_delete(int *a, int n, RBNodeSum sum) {
 	random_iota (a, n);
 	for (i = 0; i < n; i++) {
 		struct Node x = {.key = a[i]};
-		t = r_rbtree_aug_delete (&tree, &x, cmp, freefn, sum, NULL);
+		t = r_rbtree_aug_delete (&tree, &x, cmp, NULL, freefn, NULL, sum);
 		mu_assert ("delete", t);
-		t = r_rbtree_aug_delete (&tree, &x, cmp, freefn, sum, NULL);
+		t = r_rbtree_aug_delete (&tree, &x, cmp, NULL, freefn, NULL, sum);
 		mu_assert ("delete non-existent", !t);
 		if (sum) {
 			if (i == n-1)
@@ -158,7 +158,7 @@ static bool insert_delete(int *a, int n, RBNodeSum sum) {
 		}
 	}
 
-	r_rbtree_free (tree, freefn);
+	r_rbtree_free (tree, freefn, NULL);
 	return MU_PASSED;
 }
 
@@ -220,13 +220,13 @@ bool test_r_rbtree_augmented_insert_delete2(void) {
 	}
 	for (i = 0; i < N; i++) {
 		struct Node x = {.key = a[i] * 2 + 1};
-		t = r_rbtree_aug_delete (&tree, &x, cmp, freefn, size, NULL);
+		t = r_rbtree_aug_delete (&tree, &x, cmp, NULL, freefn, NULL, size);
 		mu_assert ("delete non-existent", !t);
 		mu_assert_eq (N - i, container_of (tree, struct Node, rb)->size, "size");
 		mu_assert ("shape", check (tree));
 
 		x.key = a[i] * 2;
-		t = r_rbtree_aug_delete (&tree, &x, cmp, freefn, size, NULL);
+		t = r_rbtree_aug_delete (&tree, &x, cmp, NULL, freefn, NULL, size);
 		mu_assert ("delete", t);
 		mu_assert ("shape", check (tree));
 	}
@@ -255,7 +255,7 @@ bool test_r_rbtree_traverse(void) {
 		mu_assert_eq (i, x->key, "foreach_prev");
 	}
 
-	r_rbtree_free (tree, freefn);
+	r_rbtree_free (tree, freefn, NULL);
 	mu_end;
 }
 
