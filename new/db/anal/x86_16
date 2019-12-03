@@ -12,20 +12,22 @@ RUN
 
 NAME=lcall offset (#12284)
 FILE=-
-CMDS=<<EXPECT
+CMDS=<<EOF
 e asm.arch=x86
 e asm.bits=16
 wx 9a34002001
 ?v $j
+EOF
 EXPECT=0x1234
 RUN
 
 NAME=ljmp offset (#12284)
 FILE=-
-CMDS=<<EXPECT
+CMDS=<<EOF
 e asm.arch=x86
 e asm.bits=16
 wx ea34002001
 ?v $j
+EOF
 EXPECT=0x1234
 RUN

@@ -1,6 +1,7 @@
 NAME=320c64 OPEX
 FILE=malloc://512280
-EXPECT='[
+EXPECT=<<EOF
+[
   {
     "opcode": "b 0x20de8",
     "disasm": "b 0x20de8",
@@ -32,7 +33,7 @@ EXPECT='[
     "family": "cpu"
   }
 ]
-'
+EOF
 CMDS=<<EOF
 e asm.arch=tms320
 e asm.cpu=c64x
