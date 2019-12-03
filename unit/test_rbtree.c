@@ -135,7 +135,7 @@ static bool insert_delete(int *a, int n, RBNodeSum sum) {
 
 	for (i = 0; i < n; i++) {
 		x = make (a[i]);
-		r_rbtree_aug_insert (&tree, x, &x->rb, cmp, sum, NULL);
+		r_rbtree_aug_insert (&tree, x, &x->rb, cmp, NULL, sum);
 		if (sum) {
 			mu_assert_eq (i + 1, container_of (tree, struct Node, rb)->size, "size");
 			mu_assert ("shape", check (tree));
@@ -216,7 +216,7 @@ bool test_r_rbtree_augmented_insert_delete2(void) {
 	random_iota (a, N);
 	for (i = 0; i < N; i++) {
 		x = make (a[i] * 2);
-		r_rbtree_aug_insert (&tree, x, &x->rb, cmp, size, NULL);
+		r_rbtree_aug_insert (&tree, x, &x->rb, cmp, NULL, size);
 	}
 	for (i = 0; i < N; i++) {
 		struct Node x = {.key = a[i] * 2 + 1};
