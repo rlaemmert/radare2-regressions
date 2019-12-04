@@ -24,6 +24,7 @@ bool test_r_io_mapsplit2 (void) {
 
 bool test_r_io_pcache (void) {
 	RIO *io = r_io_new ();
+	io->ff = 1;
 	ut8 buf[8];
 	int fd = r_io_fd_open (io, "malloc://3", R_PERM_RW, 0);
 	r_io_map_add (io, fd, R_PERM_RW, 0LL, 0LL, 1); //8
