@@ -1,7 +1,7 @@
 NAME=avr entrypoint
 FILE=../bins/elf/ip-riscv
 CMDS=ii~str
-EXPECT=<<RUN
+EXPECT=<<EOF
 2   0x0000a960 GLOBAL FUNC   strncpy
 15  0x0000aa10 GLOBAL FUNC   strspn
 19  0x0000aa50 GLOBAL FUNC   strdup
@@ -26,4 +26,5 @@ EXPECT=<<RUN
 141 0x0000b1b0 GLOBAL FUNC   strtok
 145 0x0000b1f0 GLOBAL FUNC   strcmp
 152 0x0000b250 GLOBAL FUNC   strtof
+EOF
 RUN

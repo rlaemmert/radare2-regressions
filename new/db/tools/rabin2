@@ -1,58 +1,63 @@
 NAME=baddr ==
 FILE=../bins/elf/analysis/hello-linux-x86_64
 CMDS=!rabin2 -qe ${R2_FILE};!rabin2 -B 0x400000 -qe ${R2_FILE}
-EXPECT=<<RUN
+EXPECT=<<EOF
 0x00400410
 0x00400410
+EOF
 RUN
 
 NAME=baddr > 0
 FILE=../bins/elf/analysis/hello-linux-x86_64
 CMDS=!rabin2 -qe ${R2_FILE};!rabin2 -B 0x800000 -qe ${R2_FILE}
-EXPECT=<<RUN
+EXPECT=<<EOF
 0x00400410
 0x00800410
+EOF
 RUN
 
 NAME=baddr 0
 FILE=../bins/elf/analysis/hello-linux-x86_64
 CMDS=!rabin2 -qe ${R2_FILE};!rabin2 -B 0 -qe ${R2_FILE}
-EXPECT=<<RUN
+EXPECT=<<EOF
 0x00400410
 0x00000410
+EOF
 RUN
 
 NAME=laddr 0
 FILE=../bins/elf/analysis/hello-linux-x86_64
 CMDS=!rabin2 -G 0 -e ${R2_FILE}
-EXPECT=<<RUN
+EXPECT=<<EOF
 [Entrypoints]
 vaddr=0x00400410 paddr=0x00000410 haddr=0x00000018 hvaddr=0x00400018 type=program
 
 1 entrypoints
+EOF
 RUN
 
 NAME=laddr 0 && baddr 0
 FILE=../bins/elf/analysis/hello-linux-x86_64
 CMDS=!rabin2 -G 0 -B 0 -e ${R2_FILE}
-EXPECT=<<RUN
+EXPECT=<<EOF
 [Entrypoints]
 vaddr=0x00000410 paddr=0x00000410 haddr=0x00000018 hvaddr=0x00000018 type=program
 
 1 entrypoints
+EOF
 RUN
 
 NAME=rabin -k file
 FILE=../bins/elf/analysis/hello-linux-x86_64
 CMDS=!rabin2 -k ${R2_FILE}
-EXPECT=<<EXPECT_ERR
+EXPECT=''
 EXPECT_ERR=Missing file.
 RUN
 
 NAME=rabin2 -K md5 -S file
 FILE=../bins/pe/a.exe
 CMDS=!rabin2 -K md5 -S ${R2_FILE}
-EXPECT=<<RUN
+EXPECT=<<EOF
 [Sections]
 
 nth paddr        size vaddr        vsize perm name
@@ -63,13 +68,15 @@ nth paddr        size vaddr        vsize perm name
 3   0x00000000    0x0 0x00404000  0x1000 -rw- .bss
 4   0x00001200  0x400 0x00405000  0x1000 -rw- .idata
 
+EOF
 RUN
 
 NAME=rabin2 -s file pe
 FILE=../bins/pe/a.exe
 CMDS=!rabin2 -s ${R2_FILE}|wc -l|awk "{print \$1}"
-EXPECT=<<RUN
+EXPECT=<<EOF
 24
+EOF
 RUN
 
 NAME=rabin2 -s file elf
@@ -300,7 +307,7 @@ rm .tmp/rabin2testpe1.exe
 !rabin2 -qOp/.data/rwx -o.tmp/rabin2testpe1.exe ${R2_FILE}
 !rabin2 -S .tmp/rabin2testpe1.exe
 rm .tmp/rabin2testpe1.exe
-EXPECT=<<RUN
+EXPECT=<<EOF
 wx e0000040 @ 0x244
 [Sections]
 
@@ -312,17 +319,19 @@ nth paddr         size vaddr        vsize perm name
 3   0x0000c200   0x200 0x00410000  0x1000 -r-- .rsrc
 4   0x0000c400   0xe00 0x00411000  0x1000 -r-- .reloc
 
+EOF
 RUN
 
 NAME=rabin2 -qOp//8 on PE32+
 FILE=../bins/pe/normal64.exe
-CMDS=<<EXPECT
+CMDS=<<EOF
 mkdir .tmp
 rm .tmp/rabin2testpe2.exe
 !rabin2 -qOp//8 -o.tmp/rabin2testpe2.exe ${R2_FILE}
 !rabin2 -S .tmp/rabin2testpe2.exe
 rm .tmp/rabin2testpe2.exe
-EXPECT=<<RUN
+EOF
+EXPECT=<<EOF
 wx 10000000 @ 0x16c
 [Sections]
 
@@ -330,6 +339,7 @@ nth paddr        size vaddr        vsize perm name
 --------------------------------------------------
 0   0x00000200  0x200 0x00401000  0x1000 s--- sect_0
 
+EOF
 RUN
 
 NAME=rabin2 -ee -j
@@ -362,18 +372,19 @@ RUN
 NAME=-ee baddr 0
 FILE=../bins/elf/analysis/x86-helloworld-gcc
 CMDS=!rabin2 -ee -B 0 ${R2_FILE}
-EXPECT=<<RUN
+EXPECT=<<EOF
 [Constructors]
 vaddr=0x000003d0 paddr=0x000003d0 hvaddr=0x0000159c hpaddr=0x0000059c type=init
 vaddr=0x000003b0 paddr=0x000003b0 hvaddr=0x000015a0 hpaddr=0x000005a0 type=fini
 
 2 entrypoints
+EOF
 RUN
 
 NAME=rabin2 -g
 FILE=../bins/elf/analysis/x86-helloworld-gcc
 CMDS=!rabin2 -g ${R2_FILE}
-EXPECT=<<RUN
+EXPECT=<<EOF
 [Sections]
 
 nth paddr        size vaddr       vsize perm name
@@ -581,6 +592,7 @@ Version need section '.gnu.version_r' contains 1 entries:
  Addr: 0x08048250  Offset: 0x00000250  Link to section: 6 (.dynstr)
   0x00000000: Version: 1  File: libc.so.6  Cnt: 1
   0x00000010:   Name: GLIBC_2.0  Flags: none Version: 2
+EOF
 RUN
 
 NAME=rabin2 -x pemixed.exe
@@ -589,16 +601,17 @@ FILE=../bins/pe/pemixed.exe
 CMDS=<<EXPECT
 !rabin2 -x ../bins/pe/pemixed.exe
 !rm -r pemixed.exe.fat
-EXPECT=<<RUN
+EXPECT=<<EOF
 pemixed.exe.fat/pemixed.exe.unknown_0.0 created (248)
 pemixed.exe.fat/pemixed.exe.unknown_0.1 created (35328)
 pemixed.exe.fat/pemixed.exe.unknown_0.2 created (35328)
+EOF
 RUN
 
 NAME=rabin2 -I elf_cpp
 FILE=../bins/elf/analysis/a.out.cpp
 CMDS=!rabin2 -I ${R2_FILE}
-EXPECT=<<RUN
+EXPECT=<<EOF
 arch     x86
 baddr    0x0
 binsz    7051
@@ -630,12 +643,13 @@ static   false
 stripped false
 subsys   linux
 va       true
+EOF
 RUN
 
 NAME=rabin2 -I asan
 FILE=../bins/elf/analysis/a.out.asan
 CMDS=!rabin2 -I ${R2_FILE}
-EXPECT=<<RUN
+EXPECT=<<EOF
 arch     x86
 baddr    0x400000
 binsz    1603255
@@ -667,12 +681,13 @@ static   false
 stripped false
 subsys   linux
 va       true
+EOF
 RUN
 
 NAME=rabin2 -I apple-blocks-ext
 FILE=../bins/mach0/mach0-blocks-ext
 CMDS=!rabin2 -I ${R2_FILE}
-EXPECT=<<RUN
+EXPECT=<<EOF
 arch     x86
 baddr    0x100000000
 binsz    9828
@@ -701,21 +716,23 @@ static   false
 stripped false
 subsys   darwin
 va       true
+EOF
 RUN
 
 NAME=rabin2 -s right symbols
 FILE=../bins/elf/libc.so.0
 CMDS=!rabin2 -s ${R2_FILE} | grep 0002edb0
-EXPECT=<<RUN
+EXPECT=<<EOF
 149   0x0002edb0 0x0002edb0 GLOBAL FUNC   356  getc_unlocked
 402   0x0002edb0 0x0002edb0 GLOBAL FUNC   356  __fgetc_unlocked
 980   0x0002edb0 0x0002edb0 GLOBAL FUNC   356  fgetc_unlocked
+EOF
 RUN
 
 NAME=rabin2 -V
 FILE=../bins/pe/version_cust.exe
 CMDS=!rabin2 -V ${R2_FILE}
-EXPECT=<<RUN
+EXPECT=<<EOF
 === VS_VERSIONINFO ===
 
 # VS_FIXEDFILEINFO
@@ -732,12 +749,13 @@ EXPECT=<<RUN
 
 # StringTable
 
+EOF
 RUN
 
 NAME=rabin2 -c
 FILE=../bins/java/test.class
 CMDS=!rabin2 -c ${R2_FILE}
-EXPECT=<<RUN
+EXPECT=<<EOF
 0x00000000 [0x000008f9 - 0x00000b99]    672 class 0 test :: groovy/lang/Script
 0x000008f9 method 0      <init>
 0x0000092e method 1      <init>
@@ -747,152 +765,174 @@ EXPECT=<<RUN
 0x00000afb method 5      $createCallSiteArray_1
 0x00000b6a method 6      $createCallSiteArray
 0x00000b99 method 7      $getCallSiteArray
+EOF
 RUN
 
 NAME=rabin2 -cq
 FILE=../bins/java/test.class
 CMDS=!rabin2 -cq ${R2_FILE}
-EXPECT=<<RUN
+EXPECT=<<EOF
 0x00000000 [0x000008f9 - 0x00000b99] test groovy/lang/Script
+EOF
 RUN
 
 NAME=rabin2 -D swift
 FILE=../bins/elf/libc.so.0
 CMDS=!rabin2 -D swift  _TFSSCfT21_builtinStringLiteralBp8byteSizeBw7isASCIIBi1__SS
-EXPECT=<<RUN
+EXPECT=<<EOF
 Swift.String.init (_builtinStringLiteral(Builtin.RawPointer byteSize__Builtin.Word isASCII__Builtin.Int1 _) -> String
+EOF
 RUN
 
 NAME=rabin2 -D Unsupported
 FILE=../bins/elf/libc.so.0
 CMDS=!rabin2 -D XXX LOLILOL
-EXPECT_ERR=<<RUN
+EXPECT_ERR=<<EOF
 Unsupported demangler
+EOF
 RUN
 
 NAME=rabin2 -h
 FILE=../bins/elf/libc.so.0
 CMDS=!rabin2 -h | grep -c Usage
-EXPECT=<<RUN
+EXPECT=<<EOF
 1
+EOF
 RUN
 
 NAME=rabin2 -O help
 FILE=../bins/elf/libc.so.0
 CMDS=!rabin2 -O help | grep -c Usage
-EXPECT=<<RUN
+EXPECT=<<EOF
 1
+EOF
 RUN
 
 NAME=rabin2 -O h
 FILE=../bins/elf/libc.so.0
 CMDS=!rabin2 -O h | grep -c Usage
-EXPECT=<<RUN
+EXPECT=<<EOF
 1
+EOF
 RUN
 
 NAME=rabin2 -O ?
 FILE=../bins/elf/libc.so.0
 CMDS=%!rabin2 -O "?" | grep -c Usage
 %
-EXPECT=<<RUN
+EXPECT=<<EOF
 1
+EOF
 RUN
 
 NAME=rabin2 -O bad op
 FILE=-
 CMDS=!rabin2 -O bad_op -
-EXPECT_ERR=<<RUN
+EXPECT_ERR=<<EOF
 Unknown operation. use -O help
+EOF
 RUN
 
 NAME=rabin2 -v
 FILE=-
 CMDS=!rabin2 -v | grep -c build
-EXPECT=<<RUN
+EXPECT=<<EOF
 1
+EOF
 RUN
 
 NAME=rabin2 -L
 FILE=-
 CMDS=!rabin2 -L | grep -c any
-EXPECT=<<RUN
+EXPECT=<<EOF
 1
+EOF
 RUN
 
 NAME=rabin2 -Lq
 FILE=-
 CMDS=!rabin2 -Lq | grep -c any
-EXPECT=<<RUN
+EXPECT=<<EOF
 1
+EOF
 RUN
 
 NAME=rabin2 -Lj
 FILE=-
 CMDS=!rabin2 -Lj | grep -c any
-EXPECT=<<RUN
+EXPECT=<<EOF
 1
+EOF
 RUN
 
 NAME=rabin2 -Lj any
 FILE=-
 CMDS=!rabin2 -Lj Dummy | grep -c Dummy
-EXPECT=<<RUN
+EXPECT=<<EOF
 1
+EOF
 RUN
 
 NAME=rabin2 -U
 FILE=../bins/pe/resource.exe
 CMDS=!rabin2 -U ${R2_FILE} | grep -c Resource
-EXPECT=<<RUN
+EXPECT=<<EOF
 1
+EOF
 RUN
 
 NAME=rabin2 -E
 FILE=../bins/pe/dll.dll
 CMDS=!rabin2 -E ${R2_FILE} | grep -c dll_export
-EXPECT=<<RUN
+EXPECT=<<EOF
 1
+EOF
 RUN
 
 NAME=rabin2 -l
 FILE=../bins/pe/ioli/w32/crackme0x00.exe
 CMDS=!rabin2 -l ${R2_FILE} | grep -c kernel32.dll
-EXPECT=<<RUN
+EXPECT=<<EOF
 1
+EOF
 RUN
 
 NAME=rabin2 -R
 FILE=../bins/pe/base.exe
 CMDS=!rabin2 -R ${R2_FILE} | grep -c msvcrt.dll___set_app_type
-EXPECT=<<RUN
+EXPECT=<<EOF
 1
+EOF
 RUN
 
 NAME=rabin2 -Z
 FILE=../bins/pe/base.exe
 CMDS=!rabin2 -Z ${R2_FILE}
-EXPECT=<<RUN
+EXPECT=<<EOF
 216569
+EOF
 RUN
 
 NAME=rabin2 -H
 FILE=../bins/pe/base.exe
 CMDS=!rabin2 -H ${R2_FILE} | grep -c "Machine : 0x14c"
-EXPECT=<<RUN
+EXPECT=<<EOF
 1
+EOF
 RUN
 
 NAME=rabin2 -d
 FILE=../bins/elf/analysis/dwarftest
 CMDS=!rabin2 -d ${R2_FILE} | grep -c "0x00400535	/tmp/r2-regressions/.//dwarftest.c"
-EXPECT=<<RUN
+EXPECT=<<EOF
 1
+EOF
 RUN
 
 NAME=rabin2 -P
 FILE=../bins/pdb/Project1.pdb
 CMDS=!rabin2 -P ${R2_FILE} | grep -c R2_TEST_UNION
-EXPECT=<<RUN
+EXPECT=<<EOF
 1
+EOF
 RUN
