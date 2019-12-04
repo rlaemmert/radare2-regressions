@@ -35,6 +35,7 @@ mut:
 	source string
 	cmds string
 	expect string
+	expect_err string
 	// mutable
 	broken bool
 	failed bool
@@ -102,6 +103,18 @@ fn (r2r mut R2R) load_cmd_test(testfile string) {
 					slurp_token = b
 					if slurp_token.len > 0 {
 						slurp_target = &test.expect
+					}
+				} else {
+				 	panic('Missing arg to cmds')
+				}
+			}
+			'EXPECT_ERR' {
+				if kv.len > 1 {
+					a, b := test.parse_slurp(kv[1])
+					test.expect_err = a
+					slurp_token = b
+					if slurp_token.len > 0 {
+						slurp_target = &test.expect_err
 					}
 				} else {
 				 	panic('Missing arg to cmds')
@@ -215,6 +228,7 @@ fn (r2r mut R2R)run_tests() {
 	r2r.wg = sync.new_waitgroup()
 	r2r.wg.add(r2r.cmd_tests.len)
 	for t in r2r.cmd_tests {
+		// go r2r.run_test(t)
 		r2r.run_test(t)
 	}
 	println('waiting')
