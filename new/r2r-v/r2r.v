@@ -7,13 +7,6 @@ import (
 // 	radare.r2
 )
 
-pub fn main() {
-	println('Loading tests')
-	os.chdir('..')
-	mut r2r := R2R{}
-	r2r.load_tests()
-	r2r.run_tests()
-}
 
 /////////////////
 
@@ -135,10 +128,10 @@ fn (r2r mut R2R) load_cmd_test(testfile string) {
 				}
 			}
 			'FILE' {
-				test.file = line[5 .. line.len]
+				test.file = line[5..]
 			}
 			'NAME' {
-				test.name = line[5 .. line.len]
+				test.name = line[5..]
 			}
 			'RUN' {
 				if test.name.len == 0 {
@@ -157,7 +150,6 @@ fn (r2r mut R2R) load_cmd_test(testfile string) {
 				}
 			}
 		}
-		// println(line)
 	}
 }
 
@@ -174,6 +166,24 @@ fn (r2r R2R)run_commands(test R2RTest) string {
 }
 */
 
+fn (r2r mut R2R)test_failed(test R2RTest, a string, b string) string {
+	if test.broken {
+		r2r.broken++
+		return 'BR'
+	}
+	println(test.file)
+	println(term.ok_message(test.cmds))
+	println(term.fail_message(a))
+	println(term.ok_message(b))
+	r2r.failed++
+	return 'XX'
+}
+
+fn (r2r mut R2R)test_fixed(test R2RTest) string {
+	r2r.fixed++
+	return 'FX'
+}
+
 fn (r2r mut R2R)run_test(test R2RTest) {
 	time_start := time.ticks()
 	// eprintln(test)
@@ -186,6 +196,7 @@ fn (r2r mut R2R)run_test(test R2RTest) {
 	// TODO: handle timeout
 	os.system('radare2 -e scr.utf8=0 -e scr.interactive=0 -e scr.color=0 -NQ -i ${tmp_script} ${test.args} ${test.file} 2> ${tmp_stderr} > ${tmp_output}')
 	res := os.read_file(tmp_output) or { panic(err) }
+	errstr := os.read_file(tmp_stderr) or { panic(err) }
 
 	os.rm(tmp_script)
 	os.rm(tmp_output)
@@ -193,25 +204,14 @@ fn (r2r mut R2R)run_test(test R2RTest) {
 	os.rmdir(tmp_dir)
 
 	mut mark := 'OK'
-	if res.trim_space() != test.expect.trim_space() {
-		//test.failed = true
-		r2r.failed++
-		if !test.broken {
-			println(test.file)
-			println(term.ok_message(test.cmds))
-			println(term.fail_message(test.expect))
-			println(term.ok_message(res))
-			mark = 'XX'
-			r2r.failed++
-		} else {
-			mark = 'BR'
-			r2r.broken++
-		}
+	test_expect := test.expect.trim_space()
+	if res.trim_space() != test_expect {
+		mark = r2r.test_failed(test, test_expect, res)
 	} else {
 		if test.broken {
-		//	test.fixed = true
-			r2r.fixed++
-			mark = 'FX'
+			mark = r2r.test_fixed(test)
+		} else if test.expect_err != '' && errstr.trim_space() != test.expect_err {
+			mark = r2r.test_failed(test, test.expect_err, errstr)
 		}
 	}
 	time_end := time.ticks()
@@ -226,6 +226,7 @@ fn (r2r mut R2R)run_tests() {
 	// r2r.r2 = r2.new()
 	// TODO: use lock
 	r2r.wg = sync.new_waitgroup()
+	println('Adding ${r2r.cmd_tests.len} watchgooses')
 	r2r.wg.add(r2r.cmd_tests.len)
 	for t in r2r.cmd_tests {
 		// go r2r.run_test(t)
@@ -272,4 +273,12 @@ fn (r2r mut R2R)load_tests() {
 			r2r.load_cmd_tests('${db_path}/${dir}')
 		}
 	}
+}
+
+pub fn main() {
+	println('Loading tests')
+	os.chdir('..')
+	mut r2r := R2R{}
+	r2r.load_tests()
+	r2r.run_tests()
 }
