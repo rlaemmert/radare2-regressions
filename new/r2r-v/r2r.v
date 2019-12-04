@@ -105,7 +105,7 @@ fn (r2r mut R2R) load_cmd_test(testfile string) {
 						slurp_target = &test.expect
 					}
 				} else {
-				 	panic('Missing arg to cmds')
+				 	eprintln('Missing arg to cmds')
 				}
 			}
 			'EXPECT_ERR' {
@@ -117,21 +117,21 @@ fn (r2r mut R2R) load_cmd_test(testfile string) {
 						slurp_target = &test.expect_err
 					}
 				} else {
-				 	panic('Missing arg to cmds')
+				 	eprintln('Missing arg to cmds')
 				}
 			}
 			'BROKEN' {
 				if kv.len > 1 {
 					test.broken = kv[1].len > 0 && kv[1] == '1'
 				} else {
-					println('Warning: Missing value for BROKEN in ${test.source}')
+					eprintln('Warning: Missing value for BROKEN in ${test.source}')
 				}
 			}
 			'ARGS' {
 				if kv.len > 0 {
 					test.args = line[5 .. line.len]
 				} else {
-					println('Warning: Missing value for ARGS in ${test.source}')
+					eprintln('Warning: Missing value for ARGS in ${test.source}')
 				}
 			}
 			'FILE' {
@@ -142,10 +142,10 @@ fn (r2r mut R2R) load_cmd_test(testfile string) {
 			}
 			'RUN' {
 				if test.name.len == 0 {
-					println('Invalid test name in ${test.source}')
+					eprintln('Invalid test name in ${test.source}')
 				} else {
 					if test.name == '' {
-						panic('invalid test')
+						eprintln('No test name to run')
 					} else {
 						if test.file == '' {
 							test.file = '-'
