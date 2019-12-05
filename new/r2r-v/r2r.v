@@ -1,3 +1,5 @@
+module main
+
 import (
 	os
 	sync
@@ -7,6 +9,19 @@ import (
 // 	radare.r2
 )
 
+// make a PR for V to have this in os.mktmpdir()
+fn C.mkdtemp(template charptr) byteptr
+
+fn mktmpdir(template string) string {
+        tp := if template == '' {
+                'temp.XXXXXX'
+        } else {
+                template
+        }
+        dir := filepath.join(os.tmpdir(),tp)
+        res := C.mkdtemp(dir.str)
+        return tos_clone(res)
+}
 
 /////////////////
 
@@ -187,7 +202,7 @@ fn (r2r mut R2R)test_fixed(test R2RTest) string {
 fn (r2r mut R2R)run_test(test R2RTest) {
 	time_start := time.ticks()
 	// eprintln(test)
-	tmp_dir := os.tmpdir()
+	tmp_dir := mktmpdir('')
 	tmp_script := filepath.join(tmp_dir, 'script.r2')
 	tmp_stderr := filepath.join(tmp_dir, 'stderr.txt')
 	tmp_output := filepath.join(tmp_dir, 'output.txt')
@@ -203,7 +218,7 @@ fn (r2r mut R2R)run_test(test R2RTest) {
 	os.rm(tmp_stderr)
 	os.rmdir(tmp_dir)
 
-	mut mark := 'OK'
+	mut mark := '\x1b[32mOK\x1b[0m'
 	test_expect := test.expect.trim_space()
 	if res.trim_space() != test_expect {
 		mark = r2r.test_failed(test, test_expect, res)
@@ -221,20 +236,37 @@ fn (r2r mut R2R)run_test(test R2RTest) {
 	r2r.wg.done()
 }
 
-fn (r2r mut R2R)run_tests() {
+fn (r2r R2R)run_fuz_tests(threads int) {
+	// open and analyze all the files in bins/fuzzed
+}
+
+fn (r2r R2R)run_asm_tests(threads int) {
+	// assemble/disassemble and compare
+}
+
+fn (r2r R2R)run_jsn_tests(threads int) {
+	// verify if the output of a command contains valid json
+}
+
+fn (r2r mut R2R)run_cmd_tests(threads int) {
 	println('Running tests')
 	// r2r.r2 = r2.new()
 	// TODO: use lock
 	r2r.wg = sync.new_waitgroup()
 	println('Adding ${r2r.cmd_tests.len} watchgooses')
-	r2r.wg.add(r2r.cmd_tests.len)
+	// r2r.wg.add(r2r.cmd_tests.len)
+	mut c := threads
 	for t in r2r.cmd_tests {
-		// go r2r.run_test(t)
-		r2r.run_test(t)
+		if c-- > 0 {
+			r2r.wg.add(1)
+			go r2r.run_test(t)
+		} else {
+			r2r.wg.wait()
+			c = threads
+		}
+	//	r2r.run_test(t)
 	}
-	println('waiting')
 	r2r.wg.wait()
-	println('waited')
 
 	println('')
 	success := r2r.cmd_tests.len - r2r.failed
@@ -256,6 +288,10 @@ fn (r2r mut R2R)load_cmd_tests(testpath string) {
 	}
 }
 
+fn (r2r R2R)load_jsn_tests(testpath string) {
+	println('TODO: json tests')
+}
+
 fn (r2r R2R)load_asm_tests(testpath string) {
 	println('TODO: asm tests')
 }
@@ -267,6 +303,8 @@ fn (r2r mut R2R)load_tests() {
 	for dir in dirs {
 		if dir == 'archos' {
 			println('TODO: archos tests')
+		} else if dir == 'json' {
+			r2r.load_jsn_tests('$(db_path)/$(dir)')
 		} else if dir == 'asm' {
 			r2r.load_asm_tests('$(db_path)/$(dir)')
 		} else {
@@ -276,9 +314,13 @@ fn (r2r mut R2R)load_tests() {
 }
 
 pub fn main() {
+	threads := 1
 	println('Loading tests')
 	os.chdir('..')
 	mut r2r := R2R{}
 	r2r.load_tests()
-	r2r.run_tests()
+	r2r.run_cmd_tests(threads)
+	r2r.run_asm_tests(threads)
+	r2r.run_fuz_tests(threads)
+	r2r.run_jsn_tests(threads)
 }
