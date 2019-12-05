@@ -5,9 +5,53 @@ import (
 	sync
 	time
 	term
+	flag
 	filepath
 // 	radare.r2
 )
+
+const (
+	default_threads = 1
+	r2r_version = '0.1'
+)
+
+pub fn main() {
+	mut fp := flag.new_flag_parser(os.args)
+	fp.application(os.filename(os.executable()))
+	fp.version(r2r_version)
+	show_norun := fp.bool_('norun', `n`, false, 'Dont run the tests')
+	run_tests := !show_norun
+	show_help := fp.bool_('help', `h`, false, 'Show this help screen')
+	threads := fp.int_('threads', `j`, default_threads, 'Spawn N threads in parallel to run tests')
+	if show_help {
+		println(fp.usage())
+		return
+	}
+	show_version := fp.bool_('version', `v`, false, 'Show version information')
+	if show_version {
+		println(r2r_version)
+		return
+	}
+	if threads < 1 {
+		eprintln('Invalid number of thread selected with -j')
+		exit(1)
+	}
+	targets := fp.finalize() or { eprintln('Error: ' + err) exit(1) }
+	for target in targets {
+		println(target)
+	}
+
+	println('Loading tests')
+	os.chdir('..')
+	mut r2r := R2R{}
+	r2r.load_tests()
+	if run_tests {
+		r2r.run_cmd_tests(threads)
+		r2r.run_asm_tests(threads)
+		r2r.run_fuz_tests(threads)
+		r2r.run_jsn_tests(threads)
+	}
+}
 
 // make a PR for V to have this in os.mktmpdir()
 fn C.mkdtemp(template charptr) byteptr
@@ -311,16 +355,4 @@ fn (r2r mut R2R)load_tests() {
 			r2r.load_cmd_tests('${db_path}/${dir}')
 		}
 	}
-}
-
-pub fn main() {
-	threads := 1
-	println('Loading tests')
-	os.chdir('..')
-	mut r2r := R2R{}
-	r2r.load_tests()
-	r2r.run_cmd_tests(threads)
-	r2r.run_asm_tests(threads)
-	r2r.run_fuz_tests(threads)
-	r2r.run_jsn_tests(threads)
 }
