@@ -31,7 +31,8 @@ RUN
 NAME=rafind2 -f 0x00010000 -t 0x00020000 -X -s
 FILE=-
 CMDS=!rafind2 -f 0x00010000 -t 0x00020000 -r -X -s 250382 ../bins/elf/ioli/crackme0x00
-EXPECT=
+EXPECT=<<EOF
+EOF
 RUN
 
 NAME=rafind2 -r -X -x
